@@ -23,15 +23,15 @@ def ensure_test_database() -> None:
         pool_pre_ping=True,
     )
     try:
-        with admin_engine.connect() as connection:
+        with admin_engine.connect().execution_options(
+            isolation_level="AUTOCOMMIT",
+        ) as connection:
             exists = connection.execute(
                 text("SELECT 1 FROM pg_database WHERE datname = :name"),
                 {"name": TEST_DATABASE_NAME},
             ).scalar_one_or_none()
             if exists is None:
-                connection.execution_options(isolation_level="AUTOCOMMIT").execute(
-                    text(f'CREATE DATABASE "{TEST_DATABASE_NAME}"')
-                )
+                connection.execute(text(f'CREATE DATABASE "{TEST_DATABASE_NAME}"'))
     finally:
         admin_engine.dispose()
 
